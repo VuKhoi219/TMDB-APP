@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">TMDB-App</string>
+    <string name="login">Login to Your Account</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="login_button">Login</string>
+    <string name="remember_me">Remember Me</string>
+
+</resources>
