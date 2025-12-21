@@ -4,7 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.example.tmdb_app.ui.navigation.AppNavigation
+import com.example.tmdb_app.navigation.AppNavigation
+import com.example.tmdb_app.ui.screens.layout.MainScreen
 import com.example.tmdb_app.ui.theme.TMDBAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -13,7 +14,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             TMDBAppTheme {
-                AppNavigation()
+                MainScreen()
             }
         }
     }

@@ -86,6 +86,8 @@ fun LoginScreen(navController: NavController) {
             isError = false
             // Thực hiện đăng nhập)
             // Điều hướng đến màn hình chính hoặc trang khác
+            val fakeToken = "fake_token";
+            preferenceManager.saveToken(fakeToken)
             navController.navigate("home") {
                 popUpTo("splash") { inclusive = true } // remove splash screen from back stack
             }

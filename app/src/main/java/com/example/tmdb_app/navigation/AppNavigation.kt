@@ -1,4 +1,4 @@
-package com.example.tmdb_app.ui.navigation
+package com.example.tmdb_app.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost

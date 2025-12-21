@@ -27,6 +27,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "TMDB_API_KEY", "\"eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI2NDVhYzM0MWM2ZjZjNWZkNzIyMDNkZWVmNTI4MmZjMyIsIm5iZiI6MTc2NjEzMTE2My44NjgsInN1YiI6IjY5NDUwNWRiNzdhODZiNDRhZjdhYjMwYSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.BJp5AL-lR-R4nuCVfDEP_uCAg3V8FEirnyNw7RZB2cg\"")
+        }
+        debug {
+            buildConfigField("String", "TMDB_API_KEY", "\"eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI2NDVhYzM0MWM2ZjZjNWZkNzIyMDNkZWVmNTI4MmZjMyIsIm5iZiI6MTc2NjEzMTE2My44NjgsInN1YiI6IjY5NDUwNWRiNzdhODZiNDRhZjdhYjMwYSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.BJp5AL-lR-R4nuCVfDEP_uCAg3V8FEirnyNw7RZB2cg\"")
         }
     }
     compileOptions {
@@ -38,6 +42,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -65,4 +70,12 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.7.0")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
+    // Retrofit & OkHttp
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // Coil
+    implementation("io.coil-kt:coil-compose:2.6.0")
 }
