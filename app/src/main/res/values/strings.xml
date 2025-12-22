@@ -14,4 +14,9 @@
     <string name="search">Search</string>
     <string name="logout">Logout</string>
     <string name="play">Play</string>
+    <string name="top_10_movies_this_week">Top 10 Movies This Week</string>
+    <string name="new_releases">New Releases</string>
+    <string name="notifications">Notifications</string>
+    <string name="see_all">See All</string>
+
 </resources>

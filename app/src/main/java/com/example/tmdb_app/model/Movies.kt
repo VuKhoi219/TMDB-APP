@@ -1,8 +1,8 @@
 package com.example.tmdb_app.model
 
-data class PopularMovieResponse(
+data class MovieResponse(
     val page: Int,
-    val results: List<PopularMovie>,
+    val results: List<Movie>,
     val total_pages: Int,
     val total_results: Int
 )
