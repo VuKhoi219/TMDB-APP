@@ -1,5 +1,6 @@
 package com.example.tmdb_app.ui.screens.home
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.Button
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -33,10 +35,13 @@ import com.example.tmdb_app.service.ApiService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.res.stringResource
+import androidx.navigation.NavController
+import com.example.tmdb_app.ui.navigation.Screen
 import com.example.tmdb_app.ui.theme.Red20
+import com.example.tmdb_app.ui.widget.MovieItem
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(navController: NavController) {
     var popular by remember { mutableStateOf<List<Movie>>(emptyList()) }
     var topMovies by remember { mutableStateOf<List<Movie>>(emptyList()) }
     var newReleases by remember { mutableStateOf<List<Movie>>(emptyList()) }
@@ -133,23 +138,27 @@ fun HomeScreen() {
         // MỤC 2: CÁC DANH SÁCH PHIM trong tuần// 2. Các Section phim
             movieSection(
                 title = topMoviesTitle,
-                movieList = topMovies
+                movieList = topMovies,
+                onSeeAllClick = { navController.navigate(Screen.SeeAll.createRoute(topMoviesTitle, 1)) }
             )
 
             movieSection(
                 title = newReleasesTitle,
-                movieList = newReleases
+                movieList = newReleases,
+                onSeeAllClick = { navController.navigate(Screen.SeeAll.createRoute(newReleasesTitle, 2)) }
             )
 
             movieSection(
                 title = notificationsTitle,
-                movieList = notification
+                movieList = notification,
+                onSeeAllClick = { navController.navigate(Screen.SeeAll.createRoute(notificationsTitle, 3)) }
             )
     }
 }
 fun LazyListScope.movieSection(
     title: String,
-    movieList: List<Movie>
+    movieList: List<Movie>,
+    onSeeAllClick: () -> Unit
 ) {
     item {
         Row(
@@ -167,11 +176,14 @@ fun LazyListScope.movieSection(
             )
             Text(
                 text = stringResource(id = R.string.see_all),
-                modifier = Modifier.padding(16.dp),
                 color = Red20,
                 fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                fontWeight = MaterialTheme.typography.titleMedium.fontWeight
+                fontWeight = MaterialTheme.typography.titleMedium.fontWeight,
+                modifier = Modifier
+                    .padding(16.dp) // Giữ lại padding để vùng bấm rộng hơn (dễ bấm trúng hơn)
+                    .clickable { onSeeAllClick() } // Thêm sự kiện click tại đây
             )
+
         }
 
     }

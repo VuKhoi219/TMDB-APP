@@ -18,5 +18,6 @@
     <string name="new_releases">New Releases</string>
     <string name="notifications">Notifications</string>
     <string name="see_all">See All</string>
+    <string name="genre">Genre: </string>
 
 </resources>

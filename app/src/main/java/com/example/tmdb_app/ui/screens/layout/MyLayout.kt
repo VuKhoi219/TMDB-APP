@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlaylistAddCheckCircle
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -23,14 +24,17 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.tmdb_app.R
 import com.example.tmdb_app.ui.screens.download.DownloadScreen
 import com.example.tmdb_app.ui.screens.explore.ExploreScreen
 import com.example.tmdb_app.ui.screens.home.HomeScreen
+import com.example.tmdb_app.ui.screens.home.SeeAll
 import com.example.tmdb_app.ui.screens.myList.MyListScreen
 import com.example.tmdb_app.ui.screens.profile.ProfileScreen
 import com.example.tmdb_app.ui.theme.Red20
@@ -48,6 +52,7 @@ sealed class Screen(
     object Profile : Screen("profile", R.string.profile, Icons.Default.Person)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
     val navController = rememberNavController() // Bộ điều khiển chuyển cảnh
@@ -102,18 +107,28 @@ fun MainScreen() {
             startDestination = Screen.Home.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Screen.Home.route) { HomeScreen() }
+            composable(Screen.Home.route) { HomeScreen(
+                navController = navController
+            ) }
             composable(Screen.Explore.route) { ExploreScreen() }
             composable(Screen.MyList.route) { MyListScreen() }
             composable(Screen.Download.route) { DownloadScreen() }
             composable(Screen.Profile.route) { ProfileScreen() }
+            composable(
+                route = "see_all/{title}/{api}",
+                arguments = listOf(
+                    navArgument("title") { type = NavType.StringType },
+                    navArgument("api") { type = NavType.IntType }
+                )
+            ) { backStackEntry ->
+                val title = backStackEntry.arguments?.getString("title") ?: ""
+                val api = backStackEntry.arguments?.getInt("api") ?: 0
+                SeeAll(
+                    title = title,
+                    api = api,
+                    onClick = { navController.popBackStack() }
+                )
+            }
         }
     }
-}
-
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun MyLayoutScreenPreview() {
-    MainScreen()
 }

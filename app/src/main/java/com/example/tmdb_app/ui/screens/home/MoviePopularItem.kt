@@ -94,20 +94,6 @@ fun MoviePopularItem(
             }
         }
 
-        // 4. THAY ĐỔI: Vô hiệu hóa lớp điều hướng Next/Prev để ẩn chúng đi
-        // Row(
-        //     modifier = Modifier.fillMaxSize().padding(horizontal = 4.dp),
-        //     horizontalArrangement = Arrangement.SpaceBetween,
-        //     verticalAlignment = Alignment.CenterVertically
-        // ) {
-        //     IconButton(onClick = onPrev) {
-        //         Icon(Icons.Default.NavigateBefore, null, tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(40.dp))
-        //     }
-        //     IconButton(onClick = onNext) {
-        //         Icon(Icons.Default.NavigateNext, null, tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(40.dp))
-        //     }
-        // }
-
         // 5. LỚP THÔNG TIN PHIM & NÚT BẤM (Ghim ở Bottom)
         Column(
             modifier = Modifier
