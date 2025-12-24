@@ -21,6 +21,10 @@
     <string name="genre">Genre: </string>
     <string name="subtitle">Subtitle</string>
     <string name="more">... More</string>
+    <string name="more_like_this">More Like This</string>
+    <string name="comments">Comments</string>
+    <string name="trailers">Trailers</string>
+
 
 
 </resources>

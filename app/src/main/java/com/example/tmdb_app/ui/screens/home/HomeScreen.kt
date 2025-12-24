@@ -213,18 +213,4 @@ fun LazyListScope.movieSection(
             }
         }
     }
-    item {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-        ) {
-//            HorizontalPager(
-//                pageCount = 3,
-//                state = pagerState
-//            ) { page ->
-//                Text(text = "Page $page")
-//            }
-        }
-    }
 }

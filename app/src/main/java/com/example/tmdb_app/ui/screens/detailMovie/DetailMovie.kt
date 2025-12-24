@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -51,6 +52,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -72,6 +74,7 @@ import com.example.tmdb_app.model.Movie
 import com.example.tmdb_app.model.MovieDetail
 import com.example.tmdb_app.service.ApiService
 import com.example.tmdb_app.ui.theme.Red20
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -89,6 +92,11 @@ fun DetailMovie(
     var isExpanded by remember { mutableStateOf(false) }
     var casts by remember { mutableStateOf(emptyList<Cast>()) }
 
+    val pages = listOf(stringResource(id = R.string.trailers),stringResource(id = R.string.more_like_this) ,stringResource(id = R.string.comments))
+    val pagerState = rememberPagerState(initialPage = 0) {
+        pages.size
+    }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         Log.d("message111111", "DetailMovie: $movieId")
@@ -150,7 +158,7 @@ fun DetailMovie(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                        IconButton(onClick = { /* Search */ }) {
+                        IconButton(onClick = { onBackClick() }) {
                             Icon(Icons.Default.ArrowBack, null, tint = Color.White)
                         }
                         IconButton(onClick = { /* Notify */ }) {
@@ -337,25 +345,34 @@ fun DetailMovie(
                         )
                     }
                 }
-                LazyRow(
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(casts) { item ->
-                        AsyncImage(
-                            model = "https://image.tmdb.org/t/p/w500${item.profile_path}",
-                            contentDescription = "Profile Picture",
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ){
+                    pages.forEachIndexed { index, title ->
+                        Text(
+                            text = title,
                             modifier = Modifier
-                                .size(60.dp)
-                                .clip(CircleShape), // Bo tròn ảnh hoàn toàn
-                            contentScale = ContentScale.Crop // Cắt ảnh sao cho lấp đầy vòng tròn
+                                .padding(12.dp)
+                                .clickable {
+                                    // khi bấm menu, chuyển pager tới trang tương ứng
+                                    scope.launch { pagerState.animateScrollToPage(index) }
+                                }
                         )
-                        Column(
-                            modifier = Modifier.padding(8.dp)
-                        ) {
-                            Text(text = item.name, style = MaterialTheme.typography.bodyMedium)
-                            Text(text = item.character, style = MaterialTheme.typography.bodySmall)
-                        }
+                    }
+                }
+                // Nội dung dưới menu, vuốt ngang hoặc đổi bằng menu
+                HorizontalPager(
+                    state = pagerState, // pageCount đã được khai báo ở bước rememberPagerState
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp)
+                ) { page ->
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = "Content for ${pages[page]}")
                     }
                 }
             }
