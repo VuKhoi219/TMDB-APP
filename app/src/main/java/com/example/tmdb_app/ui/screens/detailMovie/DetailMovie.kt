@@ -1,8 +1,9 @@
 package com.example.tmdb_app.ui.screens.detailMovie
 
-import androidx.compose.foundation.Image
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,26 +17,24 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.CastConnected
 import androidx.compose.material.icons.filled.NavigateNext
-import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SaveAlt
 import androidx.compose.material.icons.filled.Send
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,18 +45,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.tmdb_app.R
-import com.example.tmdb_app.model.Movie
+import com.example.tmdb_app.model.Cast
 import com.example.tmdb_app.model.MovieDetail
 import com.example.tmdb_app.service.ApiService
 import com.example.tmdb_app.ui.theme.Red20
@@ -65,7 +63,7 @@ import com.example.tmdb_app.ui.theme.Red20
 
 @Composable
 fun DetailMovie(
-    movie: Movie,
+    movieId: Int,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
     onBackClick: () -> Unit,
@@ -75,10 +73,13 @@ fun DetailMovie(
     var stringGenre by remember { mutableStateOf("") }
     var rounded by remember { mutableStateOf("0.0") }
     var ageText by remember { mutableStateOf("13+") }
+    var isExpanded by remember { mutableStateOf(false) }
+    var casts by remember { mutableStateOf(emptyList<Cast>()) }
+
 
     LaunchedEffect(Unit) {
         apiService.getDetailMovie(
-            movieId = movie.id,
+            movieId = movieId,
             onSuccess = { response -> response?.let { movieDetail = it } },
             onError = {print("$it")}
         )
@@ -87,6 +88,10 @@ fun DetailMovie(
         if (movieDetail?.adult == true) {
             ageText = "18+"
         }
+        apiService.getCredit(movieId = movieId,
+            onSuccess = { response -> response?.let { casts = it.cast } },
+            onError = {print("$it")}
+        )
     }
     LazyColumn(
         modifier = modifier.fillMaxSize()
@@ -125,7 +130,7 @@ fun DetailMovie(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
-                        IconButton(onClick = { /* Search */ }) {
+                        IconButton(onClick = onBackClick) {
                             Icon(Icons.Default.ArrowBack, null, tint = Color.White)
                         }
                         IconButton(onClick = { /* Notify */ }) {
@@ -206,6 +211,14 @@ fun DetailMovie(
                         Text(ageText, style = MaterialTheme.typography.bodyMedium, color = Red20)
 
                     }
+
+                    Surface(
+                        modifier = Modifier
+                            .size(4.dp)
+                            .background(color = Red20, shape = RoundedCornerShape(2.dp))
+                    ){
+                        Text(ageText, style = MaterialTheme.typography.bodyMedium, color = Red20)
+                    }
                     Surface(
                         modifier = Modifier
                             .size(4.dp)
@@ -218,13 +231,51 @@ fun DetailMovie(
                             .size(4.dp)
                             .background(color = Red20, shape = RoundedCornerShape(2.dp))
                     ){
-                        Text(ageText, style = MaterialTheme.typography.bodyMedium, color = Red20)
-
+                        Text(text = stringResource(id = R.string.subtitle), style = MaterialTheme.typography.bodyMedium, color = Red20)
                     }
-
-
                 }
-
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),){
+                    Button(
+                        onClick = { /* Play */ },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        // THAY ĐỔI: Giảm bo góc để đồng bộ với nút Play
+                        shape = RoundedCornerShape(50.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                        // THAY ĐỔI: Giảm bo góc để nút vuông vức hơn
+                    ) {
+                        Icon(Icons.Default.PlayArrow, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text(stringResource(
+                            id = R.string.play
+                        ), color = Color.White, fontSize = MaterialTheme.typography.bodyMedium.fontSize)
+                    }
+                    // THAY ĐỔI: Chuyển từ OutlinedButton sang Button và tùy chỉnh màu nền
+                    Button(
+                        onClick = { /* My List */ },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        // THAY ĐỔI: Giảm bo góc để đồng bộ với nút Play
+                        shape = RoundedCornerShape(50.dp),
+                        // THAY ĐỔI: Đặt màu nền xám bán trong suốt, không có viền
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.DarkGray.copy(alpha = 0.5f),
+                            contentColor = Color.White
+                        ),
+                        border = null // Đảm bảo không có viền
+                    ) {
+                        Icon(Icons.Default.SaveAlt, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text( stringResource(
+                            id = R.string.my_list
+                        )  , color = Color.White, fontSize = MaterialTheme.typography.bodyMedium.fontSize)
+                    }
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -245,9 +296,33 @@ fun DetailMovie(
                             )
                     )
                 }
-
-            }
-        }
-
-    }
-}
+                Spacer(modifier = Modifier.height(8.dp))
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = movieDetail?.overview ?: "",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray,
+                        // 2. Nếu isExpanded là true thì hiện hết, ngược lại giới hạn 3 dòng
+                        maxLines = if (isExpanded) Int.MAX_VALUE else 3,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .animateContentSize() // Hiệu ứng mượt mà khi mở rộng
+                            .clickable { isExpanded = !isExpanded } // Nhấn vào để chuyển đổi
+                    )
+                    // 3. Hiển thị chữ "more" hoặc "less" để gợi ý người dùng
+                    if (!isExpanded) {
+                        Text(
+                            text = stringResource(id = R.string.more),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.clickable { isExpanded = true }
+                        )
+                    }
+                }
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(casts) { item ->
+                        AsyncImage(
+                            model = "https://imag
