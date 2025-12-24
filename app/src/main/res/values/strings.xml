@@ -19,5 +19,8 @@
     <string name="notifications">Notifications</string>
     <string name="see_all">See All</string>
     <string name="genre">Genre: </string>
+    <string name="subtitle">Subtitle</string>
+    <string name="more">... More</string>
+
 
 </resources>

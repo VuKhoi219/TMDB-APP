@@ -1,5 +1,6 @@
 package com.example.tmdb_app.ui.screens.home
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
@@ -36,7 +38,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
-import com.example.tmdb_app.ui.navigation.Screen
+import com.example.tmdb_app.model.MovieDetail
+import com.example.tmdb_app.navigation.Screen
 import com.example.tmdb_app.ui.theme.Red20
 import com.example.tmdb_app.ui.widget.MovieItem
 
@@ -98,7 +101,6 @@ fun HomeScreen(navController: NavController) {
                 println("Lỗi getTopMovies: $it")
             }
         )
-
     }
 
     val topMoviesTitle = stringResource(id = R.string.top_10_movies_this_week)
@@ -139,27 +141,33 @@ fun HomeScreen(navController: NavController) {
             movieSection(
                 title = topMoviesTitle,
                 movieList = topMovies,
-                onSeeAllClick = { navController.navigate(Screen.SeeAll.createRoute(topMoviesTitle, 1)) }
+                onSeeAllClick = { navController.navigate(Screen.SeeAll.createRoute(topMoviesTitle, 1)) },
+                navController = navController
             )
 
             movieSection(
                 title = newReleasesTitle,
                 movieList = newReleases,
-                onSeeAllClick = { navController.navigate(Screen.SeeAll.createRoute(newReleasesTitle, 2)) }
+                onSeeAllClick = { navController.navigate(Screen.SeeAll.createRoute(newReleasesTitle, 2)) },
+                navController = navController
             )
 
             movieSection(
                 title = notificationsTitle,
                 movieList = notification,
-                onSeeAllClick = { navController.navigate(Screen.SeeAll.createRoute(notificationsTitle, 3)) }
+                onSeeAllClick = { navController.navigate(Screen.SeeAll.createRoute(notificationsTitle, 3))},
+                navController = navController
+
             )
     }
 }
 fun LazyListScope.movieSection(
     title: String,
     movieList: List<Movie>,
-    onSeeAllClick: () -> Unit
+    onSeeAllClick: () -> Unit,
+    navController: NavController
 ) {
+
     item {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -195,9 +203,28 @@ fun LazyListScope.movieSection(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(movieList) { movie ->
-                // MovieItem là @Composable nên gọi trong items { } là đúng
-                MovieItem(movie = movie, onClick = {})
+                MovieItem(
+                    movie = movie, 
+                    modifier = Modifier.size(width = 150.dp, height = 225.dp),
+                    onClick = {
+                    Log.d("error", "movieSection: ${movie.id}")
+                    navController.navigate(Screen.DetailMovie.createRoute(movie.id))
+                })
             }
+        }
+    }
+    item {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+        ) {
+//            HorizontalPager(
+//                pageCount = 3,
+//                state = pagerState
+//            ) { page ->
+//                Text(text = "Page $page")
+//            }
         }
     }
 }

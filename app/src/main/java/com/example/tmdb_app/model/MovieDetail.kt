@@ -3,7 +3,7 @@ package com.example.tmdb_app.model
 data class MovieDetail(
     var adult: Boolean,
     var backdrop_path : String?,
-    var belongs_to_collection : String?,
+    var belongs_to_collection : CollectionInfo?,
     var budget : Int,
     var genres : List<Genre>,
     var homepage : String?,
@@ -13,7 +13,7 @@ data class MovieDetail(
     var original_title : String,
     var overview : String,
     var popularity : Double,
-    var poster_path : String?,
+    var poster_path : String,
     var production_companies : List<ProductionCompany>,
     var production_countries : List<ProductionCountry>,
     var release_date: String,

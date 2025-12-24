@@ -1,12 +1,16 @@
 package com.example.tmdb_app.navigation
 
+import android.util.Log
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.tmdb_app.ui.screens.detailMovie.DetailMovie
 import com.example.tmdb_app.ui.screens.home.HomeScreen
 import com.example.tmdb_app.ui.screens.home.SeeAll
 import com.example.tmdb_app.ui.screens.login.LoginScreen
@@ -18,6 +22,9 @@ sealed class Screen(val route: String) {
     object Home : Screen("home")
     object SeeAll : Screen("see_all/{title}/{api}") {
         fun createRoute(title: String, api: Int) = "see_all/$title/$api"
+    }
+    object DetailMovie : Screen("detail_movie/{movieId}") {
+        fun createRoute(movieId: Int) = "detail_movie/$movieId"
     }
 }
 
@@ -48,6 +55,20 @@ fun AppNavigation() {
                 title = title,
                 api = api,
                 onClick = { navController.popBackStack() }
+            )
+        }
+        composable (
+            route = Screen.DetailMovie.route,
+            arguments = listOf(
+                navArgument("movieId") { type = NavType.IntType },
+            )
+        ) { backStackEntry ->
+            val movieId = backStackEntry.arguments?.getInt("movieId") ?: 0
+            Log.d("error", "AppNavigation: $movieId")
+            DetailMovie(
+                movieId = movieId,
+                onClick = {  },
+                onBackClick = { navController.popBackStack() },
             )
         }
     }

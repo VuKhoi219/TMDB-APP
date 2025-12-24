@@ -1,6 +1,7 @@
 package com.example.tmdb_app.ui.widget
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -27,9 +28,8 @@ fun MovieItem(
 ){
     val rounded = String.format("%.1f", movie.vote_average)
 
-    Box(modifier = Modifier
-        .fillMaxSize().clip(RoundedCornerShape(16.dp)) // 🔥 BO GÓC Ở ĐÂY
-        // Hoặc size cụ thể
+
+    Box(modifier = modifier.clip(RoundedCornerShape(16.dp)).clickable(onClick = onClick)
     ) {
         // 1. Ảnh nền chiếm toàn bộ Box cha
         AsyncImage(

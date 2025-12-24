@@ -1,6 +1,8 @@
 package com.example.tmdb_app.ui.screens.detailMovie
 
+import android.util.Log
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,22 +22,28 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.CastConnected
 import androidx.compose.material.icons.filled.NavigateNext
+import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SaveAlt
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,13 +58,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.tmdb_app.R
 import com.example.tmdb_app.model.Cast
+import com.example.tmdb_app.model.Movie
 import com.example.tmdb_app.model.MovieDetail
 import com.example.tmdb_app.service.ApiService
 import com.example.tmdb_app.ui.theme.Red20
@@ -78,35 +91,44 @@ fun DetailMovie(
 
 
     LaunchedEffect(Unit) {
+        Log.d("message111111", "DetailMovie: $movieId")
         apiService.getDetailMovie(
             movieId = movieId,
-            onSuccess = { response -> response?.let { movieDetail = it } },
+            onSuccess = { response -> response?.let { movieDetail = it }
+                Log.d("message111111", "DetailMovie title1: ${movieDetail?.title}")},
             onError = {print("$it")}
         )
+        Log.d("message111111", "DetailMovie title2: ${movieDetail?.title}")
         stringGenre = movieDetail?.genres?.joinToString(", ") { it.name } ?: ""
         rounded = String.format("%.1f", movieDetail?.vote_average)
         if (movieDetail?.adult == true) {
             ageText = "18+"
         }
+        Log.d("message111111", "DetailMovie title: ${movieDetail?.title}")
         apiService.getCredit(movieId = movieId,
             onSuccess = { response -> response?.let { casts = it.cast } },
             onError = {print("$it")}
         )
     }
+    val configuration = LocalConfiguration.current
+    val screenHeight = configuration.screenHeightDp.dp
+    val bannerHeight = screenHeight * 0.5f
     LazyColumn(
         modifier = modifier.fillMaxSize()
-
     ) {
         item {
             // Chiều cao toàn bộ Slider nên lớn (ví dụ 550dp hoặc fillMaxHeight)
-            Box(modifier = Modifier.fillMaxSize()) {
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .height(bannerHeight)) {
 
                 // 1. LỚP NỀN: Ảnh Poster phim chiếm toàn bộ diện tích
+                Log.d("message", "DetailMovie: https://image.tmdb.org/t/p/w300${movieDetail?.poster_path}")
                 AsyncImage(
-                    model = "https://image.tmdb.org/t/p/w500${movieDetail?.poster_path}",
+                    model = "https://image.tmdb.org/t/p/w300${movieDetail?.poster_path}",
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
+                    modifier = modifier.fillMaxSize(),
+                    contentScale = ContentScale.FillWidth
                 )
 
                 // 2. LỚP PHỦ: Gradient đen từ dưới lên để chữ nổi bật
@@ -120,7 +142,6 @@ fun DetailMovie(
                             )
                         )
                 )
-
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -129,14 +150,12 @@ fun DetailMovie(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-
-                        IconButton(onClick = onBackClick) {
+                        IconButton(onClick = { /* Search */ }) {
                             Icon(Icons.Default.ArrowBack, null, tint = Color.White)
                         }
                         IconButton(onClick = { /* Notify */ }) {
                             Icon(Icons.Default.CastConnected, null, tint = Color.White)
                         }
-
                 }
             }
         }
@@ -211,7 +230,6 @@ fun DetailMovie(
                         Text(ageText, style = MaterialTheme.typography.bodyMedium, color = Red20)
 
                     }
-
                     Surface(
                         modifier = Modifier
                             .size(4.dp)
@@ -325,4 +343,22 @@ fun DetailMovie(
                 ) {
                     items(casts) { item ->
                         AsyncImage(
-                            model = "https://imag
+                            model = "https://image.tmdb.org/t/p/w500${item.profile_path}",
+                            contentDescription = "Profile Picture",
+                            modifier = Modifier
+                                .size(60.dp)
+                                .clip(CircleShape), // Bo tròn ảnh hoàn toàn
+                            contentScale = ContentScale.Crop // Cắt ảnh sao cho lấp đầy vòng tròn
+                        )
+                        Column(
+                            modifier = Modifier.padding(8.dp)
+                        ) {
+                            Text(text = item.name, style = MaterialTheme.typography.bodyMedium)
+                            Text(text = item.character, style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

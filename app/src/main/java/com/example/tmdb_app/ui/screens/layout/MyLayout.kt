@@ -1,5 +1,6 @@
 package com.example.tmdb_app.ui.screens.layout
 
+import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -31,6 +32,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.tmdb_app.R
+import com.example.tmdb_app.ui.screens.detailMovie.DetailMovie
 import com.example.tmdb_app.ui.screens.download.DownloadScreen
 import com.example.tmdb_app.ui.screens.explore.ExploreScreen
 import com.example.tmdb_app.ui.screens.home.HomeScreen
@@ -127,6 +129,20 @@ fun MainScreen() {
                     title = title,
                     api = api,
                     onClick = { navController.popBackStack() }
+                )
+            }
+            composable (
+                route = com.example.tmdb_app.navigation.Screen.DetailMovie.route,
+                arguments = listOf(
+                    navArgument("movieId") { type = NavType.IntType },
+                )
+            ) { backStackEntry ->
+                val movieId = backStackEntry.arguments?.getInt("movieId") ?: 0
+                Log.d("error", "AppNavigation: $movieId")
+                DetailMovie(
+                    movieId = movieId,
+                    onClick = {  },
+                    onBackClick = { navController.popBackStack() },
                 )
             }
         }
