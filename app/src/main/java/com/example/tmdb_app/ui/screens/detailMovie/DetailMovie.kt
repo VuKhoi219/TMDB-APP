@@ -1,17 +1,19 @@
 package com.example.tmdb_app.ui.screens.detailMovie
 
+import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,31 +22,31 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.CastConnected
+import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.NavigateNext
-import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PlayCircleFilled
 import androidx.compose.material.icons.filled.SaveAlt
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Send
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.outlined.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -56,24 +58,30 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.tmdb_app.R
 import com.example.tmdb_app.model.Cast
 import com.example.tmdb_app.model.Movie
 import com.example.tmdb_app.model.MovieDetail
+import com.example.tmdb_app.model.Review
+import com.example.tmdb_app.model.Trailer
 import com.example.tmdb_app.service.ApiService
+import com.example.tmdb_app.ui.helper.formatCount
 import com.example.tmdb_app.ui.theme.Red20
+import com.example.tmdb_app.ui.widget.ColumnMovie
+import com.example.tmdb_app.ui.widget.Comment
+import com.example.tmdb_app.ui.widget.TrailerItem
 import kotlinx.coroutines.launch
 
 
@@ -91,13 +99,28 @@ fun DetailMovie(
     var ageText by remember { mutableStateOf("13+") }
     var isExpanded by remember { mutableStateOf(false) }
     var casts by remember { mutableStateOf(emptyList<Cast>()) }
+    var trailers by remember { mutableStateOf(emptyList<Trailer?>()) }
+    var topMovies by remember { mutableStateOf<List<Movie>>(emptyList()) }
+    var comments by remember { mutableStateOf<List<Review>>(emptyList()) }
+    val context = LocalContext.current // Lấy context ở đầu hàm Composable
 
     val pages = listOf(stringResource(id = R.string.trailers),stringResource(id = R.string.more_like_this) ,stringResource(id = R.string.comments))
     val pagerState = rememberPagerState(initialPage = 0) {
         pages.size
     }
     val scope = rememberCoroutineScope()
+    val formatCount = formatCount()
+    fun shareMovie(context: Context, title: String, movieUrl: String) {
+        val sendIntent: Intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            // Nội dung tin nhắn chia sẻ
+            putExtra(Intent.EXTRA_TEXT, "Xem phim này hay lắm: $title\nLink: $movieUrl")
+            type = "text/plain" // Định dạng là văn bản thuần túy
+        }
 
+        val shareIntent = Intent.createChooser(sendIntent, "Chia sẻ phim qua...")
+        context.startActivity(shareIntent)
+    }
     LaunchedEffect(Unit) {
         Log.d("message111111", "DetailMovie: $movieId")
         apiService.getDetailMovie(
@@ -116,6 +139,24 @@ fun DetailMovie(
         apiService.getCredit(movieId = movieId,
             onSuccess = { response -> response?.let { casts = it.cast } },
             onError = {print("$it")}
+        )
+        apiService.getTrailers(movieId = movieId,
+            onSuccess = { response -> response?.let { trailers = it.results } },
+            onError = {print("$it")}
+        )
+        apiService.getTopMovies(
+            onSuccess = { response -> response?.let { topMovies = it.results } },
+            onError = {
+                // Xử lý lỗi
+                println("Lỗi getTopMovies: $it")
+            })
+        apiService.getReviews(
+            movieId = movieId,
+            onSuccess = { response -> response?.let { comments = it.results } },
+            onError = {
+                // Xử lý lỗi
+                println("Lỗi getReviews: $it")
+            }
         )
     }
     val configuration = LocalConfiguration.current
@@ -171,49 +212,71 @@ fun DetailMovie(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp), // Thêm padding tổng thể
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically // Giúp text và icon thẳng hàng
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = movieDetail?.title ?: "",
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.Bold
+                        text = movieDetail?.title ?: "Avatar: The Way of Water",
+                        style = MaterialTheme.typography.headlineSmall.copy( // Dùng font to và đậm hơn
+                            fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = (-0.5).sp // Chữ hơi khít lại một chút cho giống mẫu
                         ),
-                        maxLines = 1, // Bắt buộc phải là 1 dòng để hiệu ứng chạy hoạt động
+                        maxLines = 1,
                         modifier = Modifier
-                            .weight(1f) // 1. Chiếm hết không gian trống còn lại
-                            .padding(end = 8.dp) // Khoảng cách nhỏ với cụm icon
+                            .weight(1f)
+                            .padding(end = 16.dp)
                             .basicMarquee(
-                                iterations = Int.MAX_VALUE, // Chạy vô hạn lần
-                                initialDelayMillis = 2000, // Đợi 2 giây sau khi quay lại đầu
-                                velocity = 50.dp // Tốc độ chạy (50dp mỗi giây)
+                                iterations = Int.MAX_VALUE,
+                                velocity = 50.dp
                             )
                     )
-                    // Cụm Icon bên phải
+
+                    // Cụm Icon bên phải (Không dùng background để giống hình mẫu)
                     Row(
-                        modifier = Modifier
-                            .background(
-                                color = Color.White,
-                                shape = RoundedCornerShape(4.dp)
-                            ),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp) // Khoảng cách giữa 2 icon
                     ) {
-                        IconButton(onClick = { /* Save */ }) {
-                            Icon(Icons.Filled.BookmarkBorder, null, tint = Color.Black)
+                        IconButton(
+                            onClick = { /* Save */ },
+                            modifier = Modifier.size(32.dp) // Thu nhỏ vùng click để icon sát nhau hơn
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.BookmarkBorder, // Dùng Outlined cho thanh mảnh
+                                contentDescription = null,
+                                tint = Color.Black,
+                                modifier = Modifier.size(24.dp)
+                            )
                         }
-                        IconButton(onClick = onClick) {
-                            Icon(Icons.Filled.Send, null, tint = Color.Black)
+
+                        IconButton(
+                            onClick = {
+                                shareMovie(
+                                    context = context,
+                                    title = movieDetail?.title ?: "Phim hay",
+                                    movieUrl = "https://www.themoviedb.org/movie/${movieDetail?.id}"
+                                )
+                            },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Send, // Icon máy bay giấy dạng viền
+                                contentDescription = null,
+                                tint = Color.Black,
+                                modifier = Modifier.rotate(-30f), // Xoay nhẹ icon để giống hình mẫu hơn
+                            )
                         }
                     }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), // Thêm padding tổng thể
+
                     horizontalArrangement = Arrangement.spacedBy(8.dp), // Cách đều các phần tử
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -262,49 +325,69 @@ fun DetailMovie(
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),){
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp), // Thêm padding cho đẹp bố cục
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // --- NÚT PLAY (Nền đỏ đặc) ---
                     Button(
                         onClick = { /* Play */ },
                         modifier = Modifier
                             .weight(1f)
                             .height(48.dp),
-                        // THAY ĐỔI: Giảm bo góc để đồng bộ với nút Play
-                        shape = RoundedCornerShape(50.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
-                        // THAY ĐỔI: Giảm bo góc để nút vuông vức hơn
+                        shape = CircleShape, // Bo tròn hoàn toàn giống hình
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFE50914), // Màu đỏ chuẩn Netflix/YouTube
+                            contentColor = Color.White
+                        ),
+                        elevation = null // Thường các nút này phẳng (flat)
                     ) {
-                        Icon(Icons.Default.PlayArrow, null, tint = Color.White, modifier = Modifier.size(20.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text(stringResource(
-                            id = R.string.play
-                        ), color = Color.White, fontSize = MaterialTheme.typography.bodyMedium.fontSize)
+                        Icon(
+                            imageVector = Icons.Default.PlayCircleFilled, // Icon Play có vòng tròn sẽ giống hơn
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(id = R.string.play),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
                     }
-                    // THAY ĐỔI: Chuyển từ OutlinedButton sang Button và tùy chỉnh màu nền
-                    Button(
-                        onClick = { /* My List */ },
+
+                    // --- NÚT DOWNLOAD (Nền trắng, viền đỏ) ---
+                    OutlinedButton(
+                        onClick = { /* Download */ },
                         modifier = Modifier
                             .weight(1f)
                             .height(48.dp),
-                        // THAY ĐỔI: Giảm bo góc để đồng bộ với nút Play
-                        shape = RoundedCornerShape(50.dp),
-                        // THAY ĐỔI: Đặt màu nền xám bán trong suốt, không có viền
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.DarkGray.copy(alpha = 0.5f),
-                            contentColor = Color.White
-                        ),
-                        border = null // Đảm bảo không có viền
+                        shape = CircleShape, // Bo tròn hoàn toàn
+                        border = BorderStroke(2.dp, Color(0xFFE50914)), // Viền đỏ đậm
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = Color.Transparent,
+                            contentColor = Color(0xFFE50914) // Chữ màu đỏ
+                        )
                     ) {
-                        Icon(Icons.Default.SaveAlt, null, tint = Color.White, modifier = Modifier.size(20.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text( stringResource(
-                            id = R.string.my_list
-                        )  , color = Color.White, fontSize = MaterialTheme.typography.bodyMedium.fontSize)
+                        Icon(
+                            imageVector = Icons.Default.FileDownload, // Icon tải xuống
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp),
+                            tint = Color(0xFFE50914)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(id = R.string.download), // Thay bằng R.string.download
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), // Thêm padding tổng thể
+
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(stringResource(id = R.string.genre))
@@ -348,17 +431,43 @@ fun DetailMovie(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
-                ){
+                ) {
                     pages.forEachIndexed { index, title ->
-                        Text(
-                            text = title,
+                        // Kiểm tra xem trang này có đang được chọn hay không
+                        val isSelected = pagerState.currentPage == index
+
+                        // Màu sắc thay đổi dựa trên trạng thái chọn
+                        val textColor = if (isSelected) Color.Red else Color.Gray
+
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier
-                                .padding(12.dp)
-                                .clickable {
-                                    // khi bấm menu, chuyển pager tới trang tương ứng
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null // Tắt hiệu ứng ripple mặc định nếu muốn sạch hơn
+                                ) {
                                     scope.launch { pagerState.animateScrollToPage(index) }
                                 }
-                        )
+                                .padding(top = 12.dp) // Chỉ padding top để gạch dưới sát đáy
+                        ) {
+                            Text(
+                                text = title,
+                                color = textColor,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                            )
+
+                            // Thanh gạch dưới (Indicator)
+                            Box(
+                                modifier = Modifier
+                                    .height(2.dp)
+                                    .width(40.dp) // Độ rộng của gạch dưới
+                                    .background(
+                                        color = if (isSelected) Color.Red else Color.Transparent,
+                                        shape = RoundedCornerShape(2.dp)
+                                    )
+                            )
+                        }
                     }
                 }
                 // Nội dung dưới menu, vuốt ngang hoặc đổi bằng menu
@@ -370,12 +479,56 @@ fun DetailMovie(
                 ) { page ->
                     Box(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
                     ) {
-                        Text(text = "Content for ${pages[page]}")
+                        when (page) {
+                            0 -> {
+                                // Sử dụng LazyRow nếu muốn vuốt ngang, LazyColumn nếu muốn vuốt dọc
+                                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                                    items(trailers) { item -> // Duyệt qua từng trailer trong list
+                                        if (item != null) {
+                                            TrailerItem(
+                                                trailer = item,
+                                                modifier = Modifier.padding(8.dp),
+                                                onClick = { /* Handle Trailer Click */ },
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            1 -> {
+                                ColumnMovie(modifier = Modifier.fillMaxSize(), items = topMovies)
+                            }
+                            2 -> {
+                                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                                    item {
+                                        Spacer(modifier = Modifier.height(16.dp))
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+
+                                        ) {
+                                            Text(
+                                                text = "${formatCount.formatCount(comments.size)} Comments",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = Color.Gray
+                                            )
+                                            Text(text  = stringResource( R.string.see_all), style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                                        }
+                                    }
+
+                                    items(comments) { item -> // Duyệt qua từng trailer trong list
+                                        if (item != null) {
+                                            Comment(
+                                                comment = item,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                     }
                 }
             }
         }
     }
-}
+}}
+

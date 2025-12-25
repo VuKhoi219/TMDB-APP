@@ -5,6 +5,9 @@ import com.example.tmdb_app.BuildConfig
 import com.example.tmdb_app.model.Credit
 import com.example.tmdb_app.model.MovieDetail
 import com.example.tmdb_app.model.MovieResponse
+import com.example.tmdb_app.model.Reviews
+import com.example.tmdb_app.model.Trailer
+import com.example.tmdb_app.model.Trailers
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -204,6 +207,86 @@ class ApiService {
                     // Trả về kết quả trên Main Thread để update UI an toàn
                     withContext(Dispatchers.Main) {
                         onSuccess(creditResponse)
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        onError("Lỗi API: ${response.code}")
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    onError("Lỗi kết nối: ${e.message}")
+                }
+            }
+        }
+    }
+    suspend fun getTrailers(
+        movieId: Int,
+        onSuccess: (Trailers?) -> Unit,
+        onError: (String) -> Unit
+    ){
+        // Lưu ý: TMDB dùng /movie/{id}/credits cho phim, bạn đang dùng /tv/
+        val url = "$baseUrl/movie/$movieId/videos?language=en-US"
+
+        withContext(Dispatchers.IO) {
+            try {
+                val request = Request.Builder()
+                    .url(url)
+                    .get()
+                    .addHeader("accept", "application/json")
+                    .addHeader("Authorization", "Bearer $apiKey")
+                    .build()
+
+                // Thực thi gọi API
+                val response = client.newCall(request).execute()
+                val jsonString = response.body?.string()
+
+                if (response.isSuccessful && jsonString != null) {
+                    val trailerResponse = gson.fromJson(jsonString, Trailers::class.java)
+
+                    // Trả về kết quả trên Main Thread để update UI an toàn
+                    withContext(Dispatchers.Main) {
+                        onSuccess(trailerResponse)
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        onError("Lỗi API: ${response.code}")
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    onError("Lỗi kết nối: ${e.message}")
+                }
+            }
+        }
+    }
+    suspend fun getReviews(
+        movieId: Int,
+        onSuccess: (Reviews?) -> Unit,
+        onError: (String) -> Unit
+    ){
+        // Lưu ý: TMDB dùng /movie/{id}/credits cho phim, bạn đang dùng /tv/
+        val url = "$baseUrl/movie/$movieId/reviews?language=en-US"
+
+        withContext(Dispatchers.IO) {
+            try {
+                val request = Request.Builder()
+                    .url(url)
+                    .get()
+                    .addHeader("accept", "application/json")
+                    .addHeader("Authorization", "Bearer $apiKey")
+                    .build()
+
+                // Thực thi gọi API
+                val response = client.newCall(request).execute()
+                val jsonString = response.body?.string()
+
+                if (response.isSuccessful && jsonString != null) {
+                    val reviewResponse = gson.fromJson(jsonString, Reviews::class.java)
+
+                    // Trả về kết quả trên Main Thread để update UI an toàn
+                    withContext(Dispatchers.Main) {
+                        onSuccess(reviewResponse)
                     }
                 } else {
                     withContext(Dispatchers.Main) {

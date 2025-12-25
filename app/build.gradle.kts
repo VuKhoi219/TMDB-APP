@@ -58,6 +58,7 @@ dependencies {
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.ui.graphics)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -66,6 +67,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("com.airbnb.android:lottie:6.3.0")
+
     implementation("com.airbnb.android:lottie-compose:6.7.1")
     implementation("androidx.compose.material:material-icons-extended:1.7.0")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
@@ -75,7 +77,11 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.google.code.gson:gson:2.10.1")
-
     // Coil
     implementation("io.coil-kt:coil-compose:2.6.0")
+    // youtube
+//    implementation("com.pierfrancescosoffritti.androidyoutubeplayer:chromecast-sender:0.28")
+//    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
+//    implementation("androidx.activity:activity-compose:1.5.1")
+    implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:13.0.0")
 }
